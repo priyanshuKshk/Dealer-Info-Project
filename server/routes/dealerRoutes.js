@@ -29,5 +29,26 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch dealers', details: err.message });
   }
 });
-
+router.delete("/:id", async (req, res) => {
+  try {
+    const deleted = await Dealer.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ message: "Dealer not found" });
+    res.json({ message: "Dealer deleted" });
+  } catch (err) {
+    res.status(500).json({ message: "Delete failed" });
+  }
+});
+router.put("/:id",  async (req, res) => {
+  try {
+    const updatedDealer = await Dealer.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    if (!updatedDealer) return res.status(404).json({ message: "Dealer not found" });
+    res.json(updatedDealer);
+  } catch (err) {
+    res.status(400).json({ message: "Invalid update" });
+  }
+});
 module.exports = router;
