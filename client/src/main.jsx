@@ -12,9 +12,9 @@ import Login from "./pages/Login.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import DealerList from "./pages/DealerList.jsx";
 import AddDealer from "./pages/AddDealer.jsx";
-import ProtectedRoute from "./components/ProtectedRoute";
 import SignUp from "./pages/SignUp.jsx";
 import AuthLayout from "./AuthLayout.jsx";
+import PrivateRoute from "./components/PrivateRoute.jsx";
 
 const router = createBrowserRouter([
   {
@@ -26,9 +26,9 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: (
-          <ProtectedRoute>
+          <PrivateRoute>
             <App />
-          </ProtectedRoute>
+          </PrivateRoute>
         ),
         children: [
           { path: "home", element: <Dashboard /> },

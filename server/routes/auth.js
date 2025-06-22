@@ -1,49 +1,64 @@
 const express = require("express");
-const router = express.Router();
-const Admin = require("../models/admin");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+const User = require("../models/users");
+const router = express.Router();
 
-const JWT_SECRET = process.env.JWT_SECRET || "secret_key";
+// ✅ SIGNUP
+router.post("/api/sign-up", async (req, res) => {
+  try {
+    const { firstName, lastName, phone, email, password } = req.body;
 
-// POST /auth/admin/signup
-router.post("/admin/signup", async (req, res) => {
-  const { name, email, password } = req.body;
+    const existing = await User.findOne({ email });
+    if (existing) return res.status(400).json({ error: "User already exists" });
 
-  const existing = await Admin.findOne({ email });
-  if (existing) return res.status(409).json({ message: "Email already registered" });
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({
+      firstName,
+      lastName,
+      phone,
+      email,
+      password: hashedPassword,
+      isAdmin: true // ✅ Make this user an admin if needed (optional, or use based on role logic)
+    });
 
-  const admin = new Admin({ name, email, password: hashedPassword });
-  await admin.save();
+    const user = await newUser.save();
+    const token = jwt.sign({ userId: user._id, isAdmin: user.isAdmin }, "SECRET_KEY", {
+      expiresIn: "3d",
+    });
 
- const token = jwt.sign(
-  { id: admin._id, role: "admin" },
-  process.env.JWT_SECRET,
-  { expiresIn: "1d" } // ✅ 1 day session
-);
-res.json({ token });
-
+    res.status(200).json({
+      message: "Signup successful",
+      token,
+      user: {
+        _id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+      },
+    });
+  } catch (err) {
+    console.error("Error during signup:", err);
+    res.status(500).json({ error: "Failed to sign up user" });
+  }
 });
 
-// POST /auth/admin/login
-router.post("/admin/login", async (req, res) => {
+// ✅ LOGIN
+router.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
 
-  const admin = await Admin.findOne({ email });
-  if (!admin) return res.status(404).json({ message: "Admin not found" });
+  const user = await User.findOne({ email });
 
-  const match = await bcrypt.compare(password, admin.password);
-  if (!match) return res.status(401).json({ message: "Invalid credentials" });
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    return res.status(401).json({ error: "Invalid credentials" });
+  }
 
- const token = jwt.sign(
-  { id: admin._id, role: "admin" },
-  process.env.JWT_SECRET,
-  { expiresIn: "1d" } // ✅ 1 day session
-);
-res.json({ token });
+  const token = jwt.sign({ userId: user._id, isAdmin: user.isAdmin }, "SECRET_KEY", {
+    expiresIn: "3d",
+  });
 
+  res.json({ token, user: { email: user.email, isAdmin: user.isAdmin } });
 });
 
 module.exports = router;

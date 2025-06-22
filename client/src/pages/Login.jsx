@@ -1,88 +1,143 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import api from "../utils/api";
-import { useAuth } from "../context/AuthContext";
+import axios from 'axios';
 
-export default function Login() {
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [error, setError] = useState(null);
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { FiMail, FiLock } from 'react-icons/fi';
+import { useAuth } from '../context/AuthContext';
+import LoadingSpinner from './LoadingSpinner';
+import api from '../utils/api';
+const Login = () => {
+  const { login, isLoggedIn, user } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+   const [hover, setHover] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
 
-const handleSubmit = async (e) => {
+  const handleLogin = (e) => {
   e.preventDefault();
-  setError(null);
+  setLoading(true);
 
-  try {
-    const res = await api.post("/auth/admin/login", form);
-    const { token } = res.data;
-
-    login(token); // ✅ Stores token, role, time, and sets auto logout
-
-    navigate("/home"); // ✅ Navigate after everything is set
-  } catch (err) {
-    const msg = err.response?.data?.message || "❌ Invalid admin credentials";
-    setError(msg);
-    alert(msg);
-  }
-};
+  api.post('/login', { email, password })
+  .then(({ data }) => {
+    if (data.token) {                            // ✅ success: token present
+      alert("Login successful");
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      login(data.user, data.token);
+      navigate("/");
+    } else if (data.error === "Invalid credentials") {
+      alert("Wrong email or password");
+      setLoading(false);
+    } else if (data.error === "Access denied. Admins only.") {
+      alert("You must be an admin to log in here.");
+      setLoading(false);
+    } else {
+      alert("Unknown response: " + JSON.stringify(data));
+      setLoading(false);
+    }
+  })
+  .catch((err) => {
+    alert(err.response?.data?.error || "Server error");
+    setLoading(false);
+  });
+}
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-white flex items-center justify-center px-4">
-      <div className="bg-white shadow-xl rounded-xl p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-indigo-700 mb-1">
-          Admin Portal
-        </h2>
-        <p className="text-sm text-gray-500 text-center mb-6">
-          Sign in with your credentials
-        </p>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm text-gray-600 mb-1" htmlFor="email">
+    loading ? (
+  <LoadingSpinner />
+) : (
+    <div className="tagesschrift-regular flex justify-center items-center min-h-screen bg-gray-100">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg"
+      >
+        <h2 className="text-2xl font-semibold text-center mb-6 text-blue-900">Login</h2>
+        <form onSubmit={handleLogin}>
+          <div className="mb-4">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-600 mb-1">
               Email
             </label>
-            <input
-              id="email"
-              type="email"
-              placeholder="admin@dealer.com"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              required
-            />
+            <div style={{display: 'flex',gap:'10px ', alignItems: 'center'}}>
+              <span className="px-3 text-gray-500">
+                <FiMail />
+              </span>
+            <div className="flex items-center border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden"
+            style={{width: '100%'}}>
+            
+              <input
+                type="email"
+                id="email"
+                className="p-3 w-full outline-none"
+                style={{padding: '10px', }}
+                value={email}
+                placeholder="Enter your email"
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm text-gray-600 mb-1" htmlFor="password">
+          <div className="mb-6">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-600 mb-1">
               Password
             </label>
-            <input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              required
-            />
+            <div style={{display: 'flex',gap:'10px ', alignItems: 'center'}}>
+            <span className="px-3 text-gray-500">
+                <FiLock />
+              </span>
+            <div className="flex items-center border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden"
+            style={{width: '100%'}}>
+              
+              <input
+                type="password"
+                id="password"
+                className="p-3 w-full outline-none flex-grow"
+                style={{padding: '10px'}}
+                value={password}
+                placeholder="Enter your password"
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+          </div>
           </div>
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+      <div className="flex flex-col items-center mt-10">
+  <motion.button
+    type="submit" // ✅ Important!
+    onMouseEnter={() => setHover(true)}
+    onMouseLeave={() => setHover(false)}
+    className="text-white px-4 py-2 rounded"
+    style={{
+      backgroundColor: hover ? '#0b5394' : '#073763',
+      transition: 'background-color 0.3s ease',
+      cursor: 'pointer',
+      borderRadius: '8px'
+    }}
+  >
+    {loading ? 'Logging in...' : 'Login'}
+  </motion.button>
+</div>
 
-          <button
-            type="submit"
-            className="w-full bg-indigo-600 hover:bg-indigo-700 transition text-white font-semibold py-2 rounded-md shadow"
-          >
-            Login
-          </button>
         </form>
 
-        <p className="mt-6 text-xs text-center text-gray-400">
-          © {new Date().getFullYear()} Dealer Management. All rights reserved.
-        </p>
-      </div>
-    </div>
+        <div className="mt-4 text-center">
+          <p className="text-sm text-gray-600">
+            Don't have an account?{' '}
+            <a href="/sign-up" className="text-blue-900 hover:underline">
+              Sign Up
+            </a>
+          </p>
+        </div>
+      </motion.div>
+    </div>)
   );
-}
+};
+
+export default Login;

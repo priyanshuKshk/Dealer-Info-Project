@@ -1,108 +1,302 @@
-import { useState } from "react";
+import axios from 'axios';
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../utils/api";
-import { useAuth } from "../context/AuthContext";
-
-export default function SignUp() {
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "admin", // default and only allowed
-  });
-  const [error, setError] = useState(null);
+import { motion } from "framer-motion";
+import { FiUser, FiMail, FiLock } from "react-icons/fi";
+import { FaPhoneAlt } from "react-icons/fa";
+ import { useAuth } from '../context/AuthContext';
+ import LoadingSpinner from './LoadingSpinner';
+import { User } from "lucide-react";
+import api from '../utils/api';
+const SignUp = () => {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [hover, setHover] = useState(false);
   const navigate = useNavigate();
+  // const { login } = useAuth();
   const { login } = useAuth();
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    // Block if role is anything other than admin
-    if (name === "role" && value !== "admin") {
-      alert("❌ Only admin accounts are allowed.");
-      return;
-    }
-
-    setForm({ ...form, [name]: value });
-  };
-
-  const handleSubmit = async (e) => {
+  const handleSignUp = (e) => {
     e.preventDefault();
-    setError(null);
-
-    if (form.role !== "admin") {
-      alert("❌ Invalid credentials. Only admin allowed.");
+setLoading(true);
+    if (password !== confirmPassword) {
+      alert("Passwords do not match!");
+      setLoading(false); 
       return;
     }
+const API_URL = import.meta.env.VITE_API_URL;
 
-    try {
-      const res = await api.post(`/auth/admin/signup`, form);
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("role", "admin");
-      login("admin");
-      navigate("/home");
-    } catch (err) {
-      setError(err.response?.data?.message || "Signup failed");
+  api
+  .post(
+  `/sign-up` 
+    , {
+    firstName,
+    lastName,
+    phone,
+    email,
+    password,
+  })
+  .then((res) => {
+    const { token, user, message } = res.data;
+
+    if ( user, message,token) {
+      
+      // ✅ Save the token & user to localStorage
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      // ✅ Optional: if using context API
+        login(user, token, user.profileImage || "");
+
+      alert(message || "Signup successful!");
+       setFirstName("");
+        setLastName("");
+        setPhone("");
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+      navigate("/");
+    } else {
+      alert("Signup failed: No token received");
+    
     }
-  };
+    setLoading(false); 
+  })
+  .catch((err) => {
+  const errorMessage =
+    err.response?.data?.error || err.response?.data?.message || "Signup failed";
+
+  if (errorMessage === "User already exists") {
+    alert("User already exists. Redirecting to login...");
+    navigate("/login"); // 👈 make sure your route is correct
+  } else {
+    alert(errorMessage);
+  }
+  setLoading(false);
+});
+  
+  }
 
   return (
-    <div className="max-w-md mx-auto mt-12 p-6 border rounded shadow">
-      <h2 className="text-2xl font-bold mb-4 text-center">Admin Signup</h2>
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <input
-          type="text"
-          name="name"
-          placeholder="Full name"
-          value={form.name}
-          onChange={handleChange}
-          className="w-full px-3 py-2 border rounded"
-          required
-        />
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={form.email}
-          onChange={handleChange}
-          className="w-full px-3 py-2 border rounded"
-          required
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={handleChange}
-          className="w-full px-3 py-2 border rounded"
-          required
-        />
-
-        {/* Hardcoded admin-only option */}
-        <select
-          name="role"
-          value="admin"
-          onChange={handleChange}
-          className="w-full px-3 py-2 border rounded"
-        >
-          <option value="admin">Admin</option>
-        </select>
-
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-
-        <button
-          type="submit"
-          className="w-full bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-        >
+    loading ? (
+  <LoadingSpinner />
+) : (
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg"
+      >
+        <h2 className="text-2xl font-semibold text-center mb-6 text-blue-900">
           Sign Up
-        </button>
-      </form>
-      <p className="text-sm mt-4 text-center">
-        Already an admin?{" "}
-        <a href="/login" className="text-blue-600 underline">
-          Login here
-        </a>
-      </p>
-    </div>
+        </h2>
+        <form onSubmit={handleSignUp}>
+          {/* First Name */}
+          <div className="mb-4">
+            <label
+              htmlFor="firstName"
+              className="block text-sm font-medium text-gray-600 mb-1"
+            >
+              First Name
+            </label>
+            <div
+              style={{ display: "flex", gap: "10px ", alignItems: "center" }}
+            >
+              <span className="px-3 text-gray-500">
+                <FiUser />
+              </span>
+          <div className="flex items-center border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden"
+            style={{width: '100%'}}>
+                <input
+                  type="text"
+                  id="firstName"
+                  className="p-3 w-full outline-none"
+                  style={{ padding: "10px" }}
+                  value={firstName}
+                  placeholder="Enter your first name"
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Last Name */}
+          <div className="mb-4">
+            <label
+              htmlFor="lastName"
+              className="block text-sm font-medium text-gray-600 mb-1"
+            >
+              Last Name
+            </label>
+            <div
+              style={{ display: "flex", gap: "10px ", alignItems: "center" }}
+            >
+              <span className="px-3 text-gray-500">
+                <FiUser />
+              </span>
+            <div className="flex items-center border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden"
+            style={{width: '100%'}}>
+                <input
+                  type="text"
+                  id="lastName"
+                  className="p-3 w-full outline-none"
+                  style={{ padding: "10px" }}
+                  value={lastName}
+                  placeholder="Enter your last name"
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+          {/* Last Name */}
+          <div className="mb-4">
+            <label
+              htmlFor="PhoneNumber"
+              className="block text-sm font-medium text-gray-600 mb-1"
+            >
+              Phone Number
+            </label>
+            <div
+              style={{ display: "flex", gap: "10px ", alignItems: "center" }}
+            >
+              <span className="px-3 text-gray-500">
+                <FaPhoneAlt />
+              </span>
+              <div className="flex items-center border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden"
+              style={{ width: "100%" }}>
+                <input
+                  type="tel"
+                  id="phone"
+                  className="p-3 w-full outline-none"
+                  style={{ padding: "10px" }}
+                  value={phone}
+                  placeholder="Enter your phone number"
+                  onChange={(e) => setPhone(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+          {/* Email */}
+          <div className="mb-4">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-600 mb-1"
+            >
+              Email
+            </label>
+            <div
+              style={{ display: "flex", gap: "10px ", alignItems: "center" }}
+            >
+              <span className="px-3 text-gray-500">
+                <FiMail />
+              </span>
+            <div className="flex items-center border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden"
+            style={{ width: "100%" }}>
+                <input
+                  type="email"
+                  id="email"
+                  className="p-3 w-full outline-none"
+                  style={{ padding: "10px" }}
+                  value={email}
+                  placeholder="Enter your email"
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+          {/* Password */}
+          <div className="mb-4">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-600 mb-1"
+            >
+              Password
+            </label>
+            <div
+              style={{ display: "flex", gap: "10px ", alignItems: "center" }}
+            >
+              <span className="px-3 text-gray-500">
+                <FiLock />
+              </span>
+              <div className="flex items-center border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden
+              " style={{ width: "100%" }}>
+                <input
+                  type="password"
+                  id="password"
+                  className="p-3 w-full outline-none"
+                  style={{ padding: "10px" }}
+                  value={password}
+                  placeholder="Enter your password"
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+          {/* Confirm Password */}
+          <div className="mb-6">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium text-gray-600 mb-1"
+            >
+              Confirm Password
+            </label>
+            <div
+              style={{ display: "flex", gap: "10px ", alignItems: "center" }}
+            >
+              <span className="px-3 text-gray-500">
+                <FiLock />
+              </span>
+          <div className="flex items-center border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden"
+            style={{ width: "100%" }}>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  className="p-3 w-full outline-none"
+                    style={{padding: '10px'}}
+                  value={confirmPassword}
+                  placeholder="Confirm your password"
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+          {/* Button */}
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            type="submit"
+            onClick={handleSignUp}
+              onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+            className="w-full py-3 bg-blue-900 text-white rounded-md hover:bg-blue-600 focus:outline-none transition-all"
+            style={{backgroundColor: hover ? '#0b5394' : '#073763',}}
+          >
+            Sign Up
+          </motion.button>
+        </form>
+
+        <div className="mt-4 text-center">
+          <p className="text-sm text-gray-600">
+            Already have an account?{" "}
+            <a href="/login" className="text-blue-900 hover:underline">
+              Login
+            </a>
+          </p>
+        </div>
+      </motion.div>
+    </div>)
   );
-}
+};
+
+export default SignUp;

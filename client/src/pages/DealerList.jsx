@@ -211,13 +211,12 @@ export default function DealerList() {
   const [editingDealer, setEditingDealer] = useState(null);
 
   /* ---------------- fetch dealers --------------------------------------- */
-  useEffect(() => {
-    api
-      .get("/dealers")
+useEffect(() => {
+    api.get('/dealers')
       .then(({ data }) => {
         const list = Array.isArray(data) ? data : data.dealers || [];
         setDealers(list);
-        setFiltered(list);
+        setFiltered([]); 
       })
       .catch(console.error);
   }, []);

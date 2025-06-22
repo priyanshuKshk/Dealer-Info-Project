@@ -14,9 +14,8 @@ mongoose.connect(process.env.MONGO_URI)
 const dealerRoutes = require('./routes/dealerRoutes');
 
 app.use('/api/dealers', dealerRoutes);
-
-app.use("/api/auth", require("./routes/auth"));
 app.use('/api/add-dealer', dealerRoutes);
-
+const signupLoginRoutes = require('./routes/auth');
+app.use("/", signupLoginRoutes);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
