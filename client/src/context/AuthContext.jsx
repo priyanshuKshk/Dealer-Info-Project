@@ -7,6 +7,7 @@ import {
   useRef,
 } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
@@ -32,30 +33,33 @@ export function AuthProvider({ children }) {
   /* ------------------------------------------------------------------ */
   // First run: check if a valid session exists in localStorage
   useEffect(() => {
-    const storedRole = localStorage.getItem("role");
-    const loginTime = Number(localStorage.getItem("loginTime")); // may be NaN
+  const storedRole = localStorage.getItem("role");
+  const loginTime = Number(localStorage.getItem("loginTime"));
+  const token = localStorage.getItem("token");
 
-    if (storedRole === "admin" && loginTime) {
-      const elapsed = Date.now() - loginTime;
-      if (elapsed < ONE_DAY) {
-        setRole("admin"); // ✅ session still good
-        scheduleAutoLogout(ONE_DAY - elapsed);
-      } else {
-        logout(); // ❌ expired
-      }
+  if (storedRole === "admin" && loginTime && token) {
+    const elapsed = Date.now() - loginTime;
+    if (elapsed < ONE_DAY) {
+      setRole("admin");
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`; // ✅
+      scheduleAutoLogout(ONE_DAY - elapsed);
+    } else {
+      logout();
     }
+  }
 
-    return () => clearTimeout(logoutTimer.current);
-  }, []);
+  return () => clearTimeout(logoutTimer.current);
+}, []);
 
   /* ------------------------------------------------------------------ */
-  const login = () => {
-    const now = Date.now();
-    localStorage.setItem("role", "admin");
-    localStorage.setItem("loginTime", now.toString());
-    setRole("admin");
-    scheduleAutoLogout(ONE_DAY);
-  };
+  const login = (token) => {
+  const now = Date.now();
+  localStorage.setItem("role", "admin");
+  localStorage.setItem("loginTime", now.toString());
+  localStorage.setItem("token", token); // ✅ Store JWT token
+  setRole("admin");
+  scheduleAutoLogout(ONE_DAY);
+};
 
   const logout = () => {
     clearTimeout(logoutTimer.current);

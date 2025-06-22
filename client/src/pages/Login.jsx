@@ -9,22 +9,24 @@ export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError(null);
 
-    try {
-      const res = await api.post("/auth/admin/login", form);
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("role", "admin");
-      login("admin");
-      navigate("/home");
-    } catch (err) {
-      const msg = err.response?.data?.message || "❌ Invalid admin credentials";
-      setError(msg);
-      alert(msg);
-    }
-  };
+  try {
+    const res = await api.post("/auth/admin/login", form);
+    const { token } = res.data;
+
+    login(token); // ✅ Stores token, role, time, and sets auto logout
+
+    navigate("/home"); // ✅ Navigate after everything is set
+  } catch (err) {
+    const msg = err.response?.data?.message || "❌ Invalid admin credentials";
+    setError(msg);
+    alert(msg);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-white flex items-center justify-center px-4">
