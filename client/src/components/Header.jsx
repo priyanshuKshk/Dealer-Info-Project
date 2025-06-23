@@ -38,7 +38,7 @@ const handleLogout = () => {
   }, [sidebarOpen]);
 
   return (
-    <header className="relative w-full">
+    <header className="relative w-full overflow-x-hidden">
       {/* ░░ Top bar ░░ */}
       <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-6 py-3 flex items-center justify-between shadow">
         <Link to="/" className="flex items-center gap-3">
@@ -55,7 +55,7 @@ const handleLogout = () => {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            Dealers Information
+            Dealers Info
           </motion.h1>
         </Link>
 

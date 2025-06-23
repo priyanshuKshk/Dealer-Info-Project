@@ -5,11 +5,20 @@ const Dealer  = require('../models/Dealer');
 /* --------------------  POST /api/dealers  -------------------- */
 router.post('/', async (req, res) => {
   try {
+     const exists = await Dealer.findOne({ dealerCode: req.body.dealerCode });
+
+    if (exists) {
+      // 409 = Conflict   (industry-standard for “resource already exists”)
+      return res.status(409).json({ status: 'exists', message: 'Dealer already exists' });
+    }
     const dealer = new Dealer(req.body);
     await dealer.save();
     res.status(201).json(dealer);
   } catch (err) {
-    res.status(400).json({ error: 'Failed to add dealer', details: err.message });
+    if (err.code === 11000) {
+      return res.status(409).json({ status: 'exists', message: 'Dealer already exists' });
+    }
+    res.status(400).json({ status: 'error', message: 'Failed to add dealer', details: err.message });
   }
 });
 

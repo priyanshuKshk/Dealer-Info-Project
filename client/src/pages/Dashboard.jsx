@@ -32,31 +32,38 @@ export default function DealerDashboard() {
       </div>
 
       {/* Recent Dealers */}
-      <div className="bg-white p-4 rounded shadow">
-        <h3 className="text-xl font-bold mb-3">🕑 Recent Dealers</h3>
-        <table className="w-full border text-sm">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-2 border">Name</th>
-              <th className="p-2 border">State</th>
-              <th className="p-2 border">City</th>
-              <th className="p-2 border">Contact</th>
-              <th className="p-2 border">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recentDealers.map(dealer => (
-              <tr key={dealer._id} className="text-center">
-                <td className="border p-1">{dealer.dealershipName}</td>
-                <td className="border p-1">{dealer.state}</td>
-                <td className="border p-1">{dealer.city}</td>
-                <td className="border p-1">{dealer.contactNumber}</td>
-                <td className="border p-1">{dealer.status}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <div className="bg-white p-4 rounded shadow overflow-x-auto">
+  <h3 className="text-xl font-bold mb-3">🕑 Recent Dealers</h3>
+  <div className="min-w-[600px]">
+    <table className="w-full border text-sm">
+      <thead className="bg-gray-100">
+        <tr>
+          <th className="p-2 border">Name</th>
+          <th className="p-2 border">State</th>
+          <th className="p-2 border">City</th>
+          <th className="p-2 border">Contact</th>
+          <th className="p-2 border">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {recentDealers.map(dealer => (
+          <tr key={dealer._id} className="text-center">
+            <td className="border p-1">{dealer.dealershipName}</td>
+            <td className="border p-1">{dealer.state}</td>
+            <td className="border p-1">{dealer.city}</td>
+            <td className="border p-1">{dealer.contactNumber}</td>
+            <td className="border p-1">
+              <span className={`px-2 py-1 rounded text-white text-xs ${dealer.status === "active" ? "bg-green-500" : "bg-red-500"}`}>
+                {dealer.status}
+              </span>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
+
     </div>
   );
 }
