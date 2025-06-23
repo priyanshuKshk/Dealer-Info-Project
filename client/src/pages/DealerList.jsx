@@ -38,7 +38,7 @@ export default function DealerList() {
         setDealers(list);
         setFiltered([]); 
       })
-      .catch(error);
+      .catch();
   }, []);
 
   /* --------------- cascading dropdowns ---------------------------------- */
