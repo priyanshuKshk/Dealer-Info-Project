@@ -38,7 +38,6 @@ router.post("/api/sign-up", async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("Error during signup:", err);
     res.status(500).json({ error: "Failed to sign up user" });
   }
 });

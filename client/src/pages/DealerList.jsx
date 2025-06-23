@@ -38,7 +38,7 @@ export default function DealerList() {
         setDealers(list);
         setFiltered([]); 
       })
-      .catch(console.error);
+      .catch(error);
   }, []);
 
   /* --------------- cascading dropdowns ---------------------------------- */
@@ -90,7 +90,6 @@ export default function DealerList() {
       setDealers((prev) => prev.filter((d) => d._id !== id));
       setFiltered((prev) => prev.filter((d) => d._id !== id));
     } catch (err) {
-      console.error(err);
       alert("Failed to delete dealer.");
     }
   };
