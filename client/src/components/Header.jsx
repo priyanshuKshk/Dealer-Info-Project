@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, LogOut, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-
+import logo from "../assets/image.png";
 const NAV_LINKS = [
   { to: "/", label: "Dashboard" },
   { to: "/dealers", label: "Dealers" },
@@ -42,14 +42,20 @@ const handleLogout = () => {
       {/* ░░ Top bar ░░ */}
       <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-6 py-3 flex items-center justify-between shadow">
         <Link to="/" className="flex items-center gap-3">
-          <motion.div
-            className="bg-white text-indigo-600 rounded-full px-3 py-1 text-lg font-bold shadow"
-            initial={{ rotate: -15, scale: 0.8 }}
-            animate={{ rotate: 0, scale: 1 }}
-            transition={{ type: "spring", stiffness: 260, damping: 18 }}
-          >
-            🚗
-          </motion.div>
+              
+                    <img
+                      src={logo}
+                      alt="guest-house-logo"
+                      className="w-10 h-10 "
+                      style={{
+                        maxWidth: "250px",
+                        maxHeight: "50px",
+                        padding: "4px",
+                        marginRight: "10px",
+                        marginBottom: "2px",
+                      }}
+                    />
+                  
           <motion.h1
             className="text-2xl font-semibold tracking-wide"
             initial={{ opacity: 0, y: -8 }}
