@@ -1,6 +1,6 @@
 // components/AddDealer.jsx
 import React, { useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import toast from "react-hot-toast";
@@ -36,7 +36,7 @@ const schema = yup.object({
 
 export default function AddDealer() {
   const {
-    register, handleSubmit, watch, reset,
+    register, handleSubmit, watch ,   control, reset,
     formState: { errors, isSubmitting }
   } = useForm({
     resolver: yupResolver(schema),
@@ -59,19 +59,21 @@ export default function AddDealer() {
   });
 const navigate = useNavigate();
 
-  const selectedState = watch("state");
-  const selectedDistrict = watch("district");
+const selectedState = useWatch({ control, name: "state" });
+const selectedDistrict = useWatch({ control, name: "district" });
 
   const stateOptions = Object.keys(indianLocations);
   const districtOptions = useMemo(
     () => (selectedState ? Object.keys(indianLocations[selectedState] || {}) : []),
     [selectedState]
   );
+  
   const cityOptions = useMemo(
     () => selectedState && selectedDistrict
       ? indianLocations[selectedState]?.[selectedDistrict] || []
       : [],
     [selectedState, selectedDistrict]
+    
   );
 
   const onSubmit = async (values) => {
@@ -129,35 +131,43 @@ const navigate = useNavigate();
         <IconField {...register("pincode")} placeholder="Pincode" icon={MapPin} error={errors.pincode} />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="relative">
-          <select {...register("state")} className="border p-2 rounded w-full pl-10 bg-white">
-            <option value="">State</option>
-            {stateOptions.map((s) => <option key={s}>{s}</option>)}
-          </select>
-          <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          {errors.state && <p className="text-xs text-red-600 mt-1">{errors.state.message}</p>}
-        </div>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+  {/* State */}
+  <div className="relative">
+    <select {...register("state")} className="border p-2 rounded w-full pl-10 bg-white">
+      <option value="">State</option>
+      {stateOptions.map((s) => (
+        <option key={s} value={s}>{s}</option>
+      ))}
+    </select>
+    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+    {errors.state && <p className="text-xs text-red-600 mt-1">{errors.state.message}</p>}
+  </div>
 
-        <div className="relative">
-          <select {...register("district")} disabled={!selectedState} className="border p-2 rounded w-full pl-10 bg-white">
-            <option value="">District</option>
-            {districtOptions.map((d) => <option key={d}>{d}</option>)}
-          </select>
-          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          {errors.district && <p className="text-xs text-red-600 mt-1">{errors.district.message}</p>}
-        </div>
+  {/* District */}
+  <div className="relative">
+    <select {...register("district")} disabled={!selectedState} className="border p-2 rounded w-full pl-10 bg-white">
+      <option value="">District</option>
+      {districtOptions.map((d) => (
+        <option key={d} value={d}>{d}</option>
+      ))}
+    </select>
+    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+    {errors.district && <p className="text-xs text-red-600 mt-1">{errors.district.message}</p>}
+  </div>
 
-        <div className="relative">
-          <input {...register("city")} list="cityList" placeholder="City" disabled={!selectedDistrict} className="border p-2 rounded w-full pl-10" />
-          <datalist id="cityList">
-            {cityOptions.map((c) => <option key={c} value={c} />)}
-          </datalist>
-          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          {errors.city && <p className="text-xs text-red-600 mt-1">{errors.city.message}</p>}
-        </div>
-      </div>
-
+  {/* ✅ City (now using <select> instead of <input + datalist>) */}
+  <div className="relative">
+    <select {...register("city")} disabled={!selectedDistrict} className="border p-2 rounded w-full pl-10 bg-white">
+      <option value="">City</option>
+      {cityOptions.map((c) => (
+        <option key={c} value={c}>{c}</option>
+      ))}
+    </select>
+    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+    {errors.city && <p className="text-xs text-red-600 mt-1">{errors.city.message}</p>}
+  </div>
+</div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <IconField {...register("country")} placeholder="Country" icon={Globe} />
         <IconField {...register("services")} placeholder="Services (comma separated)" icon={NotebookPen} error={errors.services} />
