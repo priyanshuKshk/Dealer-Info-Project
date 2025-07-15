@@ -1,30 +1,33 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
 
 app.use(express.json());
+const cors = require('cors');
+
 const allowedOrigins = [
   "http://localhost:5173",
   "https://dealer-info-project.vercel.app",
   "https://dealer-info-project.onrender.com"
-  
 ];
 
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
     } else {
-      return callback(new Error("Not allowed by CORS"));
+      callback(new Error("Not allowed by CORS"));
     }
   },
-  credentials: true,
-}));
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+
 mongoose.connect(process.env.MONGO_URI)
 
 const dealerRoutes = require('./routes/dealerRoutes');
