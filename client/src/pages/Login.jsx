@@ -75,7 +75,7 @@ const Login = () => {
                 className="p-3 w-full outline-none"
                 style={{padding: '10px', }}
                 value={email}
-                placeholder="Enter your email"
+                placeholder="admin@gmail.com"
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
@@ -100,7 +100,7 @@ const Login = () => {
                 className="p-3 w-full outline-none flex-grow"
                 style={{padding: '10px'}}
                 value={password}
-                placeholder="Enter your password"
+                placeholder="admin@123"
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
@@ -110,7 +110,7 @@ const Login = () => {
 
       <div className="flex flex-col items-center mt-10">
   <motion.button
-    type="submit" // ✅ Important!
+    type="submit" 
     onMouseEnter={() => setHover(true)}
     onMouseLeave={() => setHover(false)}
     className="text-white px-4 py-2 rounded"
